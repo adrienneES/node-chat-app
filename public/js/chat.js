@@ -19,17 +19,15 @@ function scrollToBottom() {
     }
 }
 socket.on('connect', function () {
-    console.log('connected to server'); 
     let params = jQuery.deparam(window.location.search);
     params.name = params.name.trim();
     params.room = params.room.trim();
-    console.log(params);
     socket.emit('join', params, function(err) {
         if (err) {
             alert(err);
             window.location.href = '/';
         } else {
-            console.log(`${JSON.stringify(params,undefined, 2)} connected`);
+            console.log(`${params.name} connected`);
         }
     });
 }); 
@@ -38,7 +36,6 @@ socket.on('disconnect', function () {
     console.log('client disconnected'); 
 }); 
 socket.on('updateUserList', function(users) {
-    console.log(`users: ${users}`);
     var ol = jQuery('<ol></ol>');
     users.forEach(function(user){
         ol.append(jQuery('<li></li>').text(user));
@@ -48,6 +45,7 @@ socket.on('updateUserList', function(users) {
 socket.on('newLocationMessage', function(data) {
     let timeMessage = moment(data.createdAt).format('h:mm a');
     let template = jQuery('#locationMessage-template').html();
+    console.log(`data ${data}`);
     let html = Mustache.render(template, {text: data.text, from: data.from, createdAt:timeMessage, url: data.url })
     jQuery('#messages').append(html);
     scrollToBottom();
@@ -55,6 +53,7 @@ socket.on('newLocationMessage', function(data) {
 socket.on('newMessage', function(data) {
     let template = jQuery('#message-template').html();
     let formattedTime = moment(data.createdAt).format('h:mm a');
+    console.log(`new message data ${JSON.stringify(data, undefined, 2)}`);
     let html = Mustache.render(template, {text: data.text, from:data.from,
     createdAt: formattedTime});
 
@@ -64,9 +63,8 @@ socket.on('newMessage', function(data) {
 jQuery('#message-form').on('submit', function(e) {
     e.preventDefault(); 
     let messageTextbox = jQuery('[name=message]');
-    console.log('button clicked'); 
     socket.emit('createMessage',  {
-        from:'user', text:messageTextbox.val()
+        text:messageTextbox.val()
     }, function (data) {
         messageTextbox.val('');
     });
@@ -79,7 +77,6 @@ locationButton.on('click', function(data) {
     }
     locationButton.attr('disabled', 'disabled').text('sending location ...');
     navigator.geolocation.getCurrentPosition(function(position) {
-        console.log(`lat: ${position.coords.latitude}; long ${position.coords.longitude}`);
         socket.emit('createLocationMessage', {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
