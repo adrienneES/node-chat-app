@@ -1,7 +1,23 @@
 // all es6 is removed so that script can run
 //  in not just chrome browser
 var socket = io(); 
-
+function scrollToBottom() {
+    // selectors
+    let messages = jQuery('#messages');
+    let newMessage = messages.children('li:last-child');
+    // heights
+    let clientHeight = messages.prop('clientHeight');
+    let scrollTop = messages.prop('scrollTop');
+    let scrollHeight = messages.prop('scrollHeight');
+    let newMessageHeight = newMessage.innerHeight();
+    let lastMessageHeight = newMessage.prev().innerHeight() || 0;
+    let height = clientHeight + scrollTop + newMessageHeight + lastMessageHeight;
+    // console.log(`height: ${height} clientHeight ${clientHeight} scrollTop ${scrollTop} newMessageHeight: ${newMessageHeight} lastMessageHeight ${lastMessageHeight}`);
+    // console.log(`scrollHeight ${scrollHeight}`);
+    if (height >= scrollHeight) {
+        messages.scrollTop(scrollHeight);
+    }
+}
 socket.on('connect', function () {
     console.log('connected to server'); 
 
@@ -16,6 +32,7 @@ socket.on('newLocationMessage', function(data) {
     let template = jQuery('#locationMessage-template').html();
     let html = Mustache.render(template, {text: data.text, from: data.from, createdAt:timeMessage, url: data.url })
     jQuery('#messages').append(html);
+    scrollToBottom();
 })
 socket.on('newMessage', function(data) {
     let template = jQuery('#message-template').html();
@@ -24,6 +41,7 @@ socket.on('newMessage', function(data) {
     createdAt: formattedTime});
 
     jQuery('#messages').append(html);
+    scrollToBottom();
 }); 
 jQuery('#message-form').on('submit', function(e) {
     e.preventDefault(); 
@@ -32,7 +50,6 @@ jQuery('#message-form').on('submit', function(e) {
     socket.emit('createMessage',  {
         from:'user', text:messageTextbox.val()
     }, function (data) {
-        console.log('from server: ', data)
         messageTextbox.val('');
     });
 });
