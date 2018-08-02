@@ -12,18 +12,20 @@ socket.on('disconnect', function () {
 }); 
 
 socket.on('newLocationMessage', function(data) {
+    let timeMessage = moment(data.createdAt).format('h:mm a');
     var li = jQuery('<li></li>'); 
     var a = jQuery('<a target="_blank">My current location</a>')
-    li.text(`${data.from}: `);
+    li.text(`${data.from}: ${timeMessage}: `);
     a.attr('href', data.url);
     li.append(a);
     jQuery('#messages').append(li); 
 
 })
 socket.on('newMessage', function(data) {
+    let formattedTime = moment(data.createdAt).format('h:mm a');
     console.log(`new newMessage${JSON.stringify(data, undefined, 2)}}`); 
     var li = jQuery('<li></li>'); 
-    li.text(`from: ${data.from}; message: ${data.text}`)
+    li.text(`${data.from} : ${formattedTime}; ${data.text}`)
     jQuery('#messages').append(li); 
 }); 
 jQuery('#message-form').on('submit', function(e) {
@@ -31,7 +33,7 @@ jQuery('#message-form').on('submit', function(e) {
     let messageTextbox = jQuery('[name=message]');
     console.log('button clicked'); 
     socket.emit('createMessage',  {
-        from:'me', text:messageTextbox.val()
+        from:'user', text:messageTextbox.val()
     }, function (data) {
         console.log('from server: ', data)
         messageTextbox.val('');
@@ -53,5 +55,5 @@ locationButton.on('click', function(data) {
     }, function (error) {
         alert ('unable to fetch lcoation');
         locationButton.removeAttr('disabled').text('Send Location');
-    })
+    });
 });
