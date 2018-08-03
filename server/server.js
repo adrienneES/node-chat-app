@@ -23,6 +23,8 @@ io.on('connection', (socket)=>{
         if (! isRealString(params.name) || ! isRealString(params.room)) {
             return cb('Name and Room are required');
         }
+        params.room = params.room.toUpperCase();
+
         socket.join(params.room);
         users.removeUser(socket.id); // so no dups
         users.addUser(socket.id,params.name, params.room);
@@ -58,6 +60,10 @@ io.on('connection', (socket)=>{
             io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude))
         }
     });    
+    socket.on('room-list', ()=>{
+        console.log(`in test socket.on `);
+        socket.emit('show-rooms', users.getRoomList());
+    })
 });
 
 
